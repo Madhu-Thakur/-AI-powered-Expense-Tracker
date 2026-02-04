@@ -40,7 +40,7 @@ No explanation.
 `;
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.0-pro",
+        model: "gemini-2.5-flash-lite",
       });
 
       const result = await model.generateContent(prompt);
