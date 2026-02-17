@@ -2,6 +2,11 @@ import { useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import "./App.css";
 
+
+console.log("ENV KEY =>", import.meta.env.VITE_GEMINI_API_KEY);
+
+
+
 function App() {
   const [aiInput, setAiInput] = useState("");
   const [expenses, setExpenses] = useState([]);
@@ -40,7 +45,7 @@ No explanation.
 `;
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.0-pro",
+        model: "gemini-2.5-flash-lite",
       });
 
       const result = await model.generateContent(prompt);
@@ -84,7 +89,7 @@ No explanation.
 
   return (
     <div className="container">
-      <h1>AI Expense Tracker (Gemini + Voice)</h1>
+      <h1>AI Expense Tracker</h1>
 
       <div className="card">
         <h2>Add Expense with AI or Voice</h2>
@@ -135,3 +140,4 @@ No explanation.
 }
 
 export default App;
+ 

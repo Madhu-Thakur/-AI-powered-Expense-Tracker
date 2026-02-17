@@ -68,11 +68,17 @@ input {
 }
 
 .expense {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid black;
   padding: 8px 0;
+}
+
+.expense:last-child {
+  border-bottom: none;
+  color: black;
 }
 
 .date {
   font-size: 12px;
   color: gray;
+  font-weight: 700;
 }
