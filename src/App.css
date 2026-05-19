@@ -289,7 +289,49 @@ input {
   z-index: 9999999 !important;
 }
 
+.switch-text {
+  margin-top: 15px;
+  text-align: center;
+}
 
+.switch-text span {
+  color: blue;
+  cursor: pointer;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.welcome-screen {
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 40px;
+  font-weight: bold;
+}
+
+
+.forgot-password {
+  text-align: right;
+  color: #2563eb;
+  cursor: pointer;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.switch-text {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.switch-text span {
+  color: #2563eb;
+  cursor: pointer;
+  margin-left: 5px;
+  font-weight: bold;
+}
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;
