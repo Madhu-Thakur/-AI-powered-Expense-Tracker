@@ -6,7 +6,7 @@ import {
 
 import { auth } from "../firebase";
 
-function Signup() {
+function Signup({ openLogin }) {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] =
@@ -111,6 +111,13 @@ function Signup() {
         <button type="submit">
           Signup
         </button>
+        <p className="switch-text">
+  Already have an account?
+
+  <span onClick={openLogin}>
+    Login
+  </span>
+</p>
       </form>
     </div>
   );
