@@ -2,25 +2,18 @@ import { useState } from "react";
 
 import "../styles/auth.css";
 
-import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth } from "../firebase";
 
-function Login({
-  onLoginSuccess,
-  openSignup,
-}) {
-  const [email, setEmail] =
-    useState("");
+function Login({ onLoginSuccess, openSignup }) {
+  const [email, setEmail] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,28 +21,21 @@ function Login({
     setError("");
 
     if (!email || !password) {
-      setError(
-        "All fields are mandatory"
-      );
+      setError("All fields are mandatory");
 
       return;
     }
 
     try {
-      const userCredential =
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
-      const token =
-        await userCredential.user.getIdToken();
-
-      localStorage.setItem(
-        "token",
-        token
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
       );
+
+      const token = await userCredential.user.getIdToken();
+
+      localStorage.setItem("token", token);
 
       alert("Login Successful");
 
@@ -61,80 +47,78 @@ function Login({
     }
   };
 
-  const handleForgotPassword =
-    async () => {
-      if (!email) {
-        alert(
-          "Please enter your email first"
-        );
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email first");
 
-        return;
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${
+          import.meta.env.VITE_FIREBASE_API_KEY
+        }`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            requestType: "PASSWORD_RESET",
+
+            email: email,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error.message);
       }
 
-      try {
-        await sendPasswordResetEmail(
-          auth,
-          email
-        );
-
-        alert(
-          "Password reset email sent"
-        );
-      } catch (err) {
-        alert(err.message);
-      }
-    };
+      alert("Password reset email sent");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form
-      className="signup-form"
-      onSubmit={handleLogin}
-    >
+    <form className="signup-form" onSubmit={handleLogin}>
       <h2>Login</h2>
 
-      {error && (
-        <p className="error-message">
-          {error}
-        </p>
-      )}
+      {error && <p className="error-message">{error}</p>}
 
       <input
         type="email"
         placeholder="Enter Email"
         value={email}
-        onChange={(e) =>
-          setEmail(e.target.value)
-        }
+        onChange={(e) => setEmail(e.target.value)}
       />
 
       <input
         type="password"
         placeholder="Enter Password"
         value={password}
-        onChange={(e) =>
-          setPassword(e.target.value)
-        }
+        onChange={(e) => setPassword(e.target.value)}
       />
 
-      <p
-        className="forgot-password"
-        onClick={
-          handleForgotPassword
-        }
-      >
-        Forgot Password?
+      <p className="forgot-password" onClick={handleForgotPassword}>
+        {loading ? "Sending Reset Link..." : "Forgot Password?"}
       </p>
 
-      <button type="submit">
-        Login
-      </button>
+      <button type="submit">Login</button>
 
       <p className="switch-text">
         Don't have an account?
-
-        <span onClick={openSignup}>
-          Signup
-        </span>
+        <span onClick={openSignup}>Signup</span>
       </p>
     </form>
   );
