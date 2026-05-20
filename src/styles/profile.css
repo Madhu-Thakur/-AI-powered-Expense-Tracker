@@ -1,0 +1,93 @@
+/* Profile Container */
+.profile-container {
+  width: 100%;
+}
+
+/* Profile Top Section */
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.profile-top p {
+  color: #6b7280;
+  font-size: 14px;
+  font-style: italic;
+  margin: 0;
+}
+
+.profile-top button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.profile-top button:hover {
+  background: #dc2626;
+}
+
+/* Profile Box */
+.profile-box {
+  background: #f9fafb;
+  padding: 25px;
+  border-radius: 12px;
+}
+
+.profile-box h2 {
+  color: #111827;
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Profile Form */
+.profile-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.profile-box input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+.profile-box input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.profile-box button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.profile-box button[type="submit"]:hover {
+  background: #1d4ed8;
+}
+
+.profile-box button[type="submit"]:active {
+  transform: scale(0.98);
+}

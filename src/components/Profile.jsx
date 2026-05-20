@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import "../styles/profile.css";
+
 import { updateProfile } from "firebase/auth";
 
 import { auth } from "../firebase";

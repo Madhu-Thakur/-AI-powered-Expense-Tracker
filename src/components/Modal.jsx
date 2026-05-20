@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import "../styles/modal.css";
 
 function Modal({
   children,
