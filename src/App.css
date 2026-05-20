@@ -194,6 +194,11 @@ input {
 
 /*------------------------------- Responsive--------------------------- */
 
+/*-------------------------------logout button--------------------------- */
+.logout-btn {
+  background-color: crimson;
+}
+
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;

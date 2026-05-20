@@ -2,6 +2,10 @@ import { useState } from "react";
 
 import "./App.css";
 
+import { signOut } from "firebase/auth";
+
+import { auth } from "./firebase";
+
 import Signup from "./components/Signup";
 import Modal from "./components/Modal";
 import Login from "./components/Login";
@@ -17,26 +21,19 @@ import { generateExpense } from "./services/geminiService";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 
 function App() {
-  const [aiInput, setAiInput] =
-    useState("");
+  const [aiInput, setAiInput] = useState("");
 
-  const [expenses, setExpenses] =
-    useState([]);
+  const [expenses, setExpenses] = useState([]);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [showSignup, setShowSignup] =
-    useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
-  const [showLogin, setShowLogin] =
-    useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] =
-    useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const [showProfile, setShowProfile] =
-    useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleAddAI = async (text) => {
     const input = text || aiInput;
@@ -46,124 +43,115 @@ function App() {
     try {
       setLoading(true);
 
-      const expense =
-        await generateExpense(input);
+      const expense = await generateExpense(input);
 
-      setExpenses((prev) => [
-        ...prev,
-        expense,
-      ]);
+      setExpenses((prev) => [...prev, expense]);
 
       setAiInput("");
     } catch (error) {
       console.error(error);
 
-      alert(
-        "AI could not process input"
-      );
+      alert("AI could not process input");
     } finally {
       setLoading(false);
     }
   };
 
-  const { listening, startListening } =
-    useSpeechRecognition(handleAddAI);
+  const { listening, startListening } = useSpeechRecognition(handleAddAI);
 
+  // -----------------------logout function----------------------
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+
+      localStorage.removeItem("token");
+
+      setIsLoggedIn(false);
+
+      alert("Logged out successfully");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   return (
     <div className="app">
-      {/* Navbar */}
+      {/*-----------------------------------------Navbar-----------------------------------------*/}
       <nav className="navbar">
-        <div className="logo">
-          AI Expense Tracker
-        </div>
+        <div className="logo">AI Expense Tracker</div>
 
         <div className="nav-buttons">
-          <button
-            type="button"
-            className="nav-btn add-btn"
-          >
-            Add Expense
-          </button>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              className="nav-btn logout-btn"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <button type="button" className="nav-btn add-btn">
+                Add Expense
+              </button>
 
-          <button
-            type="button"
-            className="nav-btn login-btn"
-            onClick={() =>
-              setShowLogin(true)
-            }
-          >
-            Login
-          </button>
+              <button
+                type="button"
+                className="nav-btn login-btn"
+                onClick={() => setShowLogin(true)}
+              >
+                Login
+              </button>
 
-          <button
-            type="button"
-            className="nav-btn signup-btn"
-            onClick={() =>
-              setShowSignup(true)
-            }
-          >
-            Signup
-          </button>
+              <button
+                type="button"
+                className="nav-btn signup-btn"
+                onClick={() => setShowSignup(true)}
+              >
+                Signup
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
-      {/* IF LOGGED IN */}
+      {/*-----------------------IF LOGGED IN------------------------*/}
       {isLoggedIn ? (
-        <Welcome
-          openProfile={() =>
-            setShowProfile(true)
-          }
-        />
+        <Welcome openProfile={() => setShowProfile(true)} />
       ) : (
         <>
-          {/* Hero Section */}
+          {/*-------------------Hero Section-------------------------- */}
           <section className="hero">
-            <h1>
-              Manage Your Expenses
-              Smartly with AI
-            </h1>
+            <h1>Manage Your Expenses Smartly with AI</h1>
 
             <p>
-              Track daily expenses,
-              use voice input, and let
-              AI organize your
+              Track daily expenses, use voice input, and let AI organize your
               spending effortlessly.
             </p>
           </section>
 
-          {/* Dashboard */}
+          {/*-------------------Dashboard-------------------------- */}
           <div className="dashboard">
             <div className="left-panel">
               <ExpenseForm
                 aiInput={aiInput}
                 setAiInput={setAiInput}
-                handleAddAI={
-                  handleAddAI
-                }
+                handleAddAI={handleAddAI}
                 loading={loading}
                 listening={listening}
-                startListening={
-                  startListening
-                }
+                startListening={startListening}
               />
             </div>
 
             <div className="right-panel">
-              <ExpenseList
-                expenses={expenses}
-              />
+              <ExpenseList expenses={expenses} />
             </div>
           </div>
         </>
       )}
 
-      {/* Signup Modal */}
+      {/*-------------------Signup Modal-------------------------- */}
       {showSignup && (
-        <Modal
-          onClose={() =>
-            setShowSignup(false)
-          }
-        >
+        <Modal onClose={() => setShowSignup(false)}>
           <Signup
             openLogin={() => {
               setShowSignup(false);
@@ -174,13 +162,9 @@ function App() {
         </Modal>
       )}
 
-      {/* Login Modal */}
+      {/*-------------------Login Modal-------------------------- */}
       {showLogin && (
-        <Modal
-          onClose={() =>
-            setShowLogin(false)
-          }
-        >
+        <Modal onClose={() => setShowLogin(false)}>
           <Login
             onLoginSuccess={() => {
               setShowLogin(false);
@@ -196,15 +180,11 @@ function App() {
         </Modal>
       )}
 
-      {/* Profile Modal */}
+      {/*-------------------Profile Modal-------------------------- */}
       {showProfile && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <Profile
-              closeProfile={() =>
-                setShowProfile(false)
-              }
-            />
+            <Profile closeProfile={() => setShowProfile(false)} />
           </div>
         </div>
       )}
