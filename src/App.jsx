@@ -7,6 +7,7 @@ import Modal from "./components/Modal";
 import Login from "./components/Login";
 
 import Welcome from "./components/Welcome";
+import Profile from "./components/Profile";
 
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
@@ -16,16 +17,26 @@ import { generateExpense } from "./services/geminiService";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 
 function App() {
-  const [aiInput, setAiInput] = useState("");
+  const [aiInput, setAiInput] =
+    useState("");
 
-  const [expenses, setExpenses] = useState([]);
+  const [expenses, setExpenses] =
+    useState([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [showSignup, setShowSignup] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] =
+    useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogin, setShowLogin] =
+    useState(false);
+
+  const [isLoggedIn, setIsLoggedIn] =
+    useState(false);
+
+  const [showProfile, setShowProfile] =
+    useState(false);
 
   const handleAddAI = async (text) => {
     const input = text || aiInput;
@@ -35,40 +46,51 @@ function App() {
     try {
       setLoading(true);
 
-      const expense = await generateExpense(input);
+      const expense =
+        await generateExpense(input);
 
-      setExpenses((prev) => [...prev, expense]);
+      setExpenses((prev) => [
+        ...prev,
+        expense,
+      ]);
 
       setAiInput("");
     } catch (error) {
       console.error(error);
 
-      alert("AI could not process input");
+      alert(
+        "AI could not process input"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const { listening, startListening } = useSpeechRecognition(handleAddAI);
-
-  if (isLoggedIn) {
-    return <Welcome />;
-  }
+  const { listening, startListening } =
+    useSpeechRecognition(handleAddAI);
 
   return (
     <div className="app">
+      {/* Navbar */}
       <nav className="navbar">
-        <div className="logo">AI Expense Tracker</div>
+        <div className="logo">
+          AI Expense Tracker
+        </div>
 
         <div className="nav-buttons">
-          <button type="button" className="nav-btn add-btn">
+          <button
+            type="button"
+            className="nav-btn add-btn"
+          >
             Add Expense
           </button>
 
           <button
             type="button"
             className="nav-btn login-btn"
-            onClick={() => setShowLogin(true)}
+            onClick={() =>
+              setShowLogin(true)
+            }
           >
             Login
           </button>
@@ -76,41 +98,72 @@ function App() {
           <button
             type="button"
             className="nav-btn signup-btn"
-            onClick={() => setShowSignup(true)}
+            onClick={() =>
+              setShowSignup(true)
+            }
           >
             Signup
           </button>
         </div>
       </nav>
 
-      <section className="hero">
-        <h1>Manage Your Expenses Smartly with AI</h1>
+      {/* IF LOGGED IN */}
+      {isLoggedIn ? (
+        <Welcome
+          openProfile={() =>
+            setShowProfile(true)
+          }
+        />
+      ) : (
+        <>
+          {/* Hero Section */}
+          <section className="hero">
+            <h1>
+              Manage Your Expenses
+              Smartly with AI
+            </h1>
 
-        <p>
-          Track daily expenses, use voice input, and let AI organize your
-          spending effortlessly.
-        </p>
-      </section>
+            <p>
+              Track daily expenses,
+              use voice input, and let
+              AI organize your
+              spending effortlessly.
+            </p>
+          </section>
 
-      <div className="dashboard">
-        <div className="left-panel">
-          <ExpenseForm
-            aiInput={aiInput}
-            setAiInput={setAiInput}
-            handleAddAI={handleAddAI}
-            loading={loading}
-            listening={listening}
-            startListening={startListening}
-          />
-        </div>
+          {/* Dashboard */}
+          <div className="dashboard">
+            <div className="left-panel">
+              <ExpenseForm
+                aiInput={aiInput}
+                setAiInput={setAiInput}
+                handleAddAI={
+                  handleAddAI
+                }
+                loading={loading}
+                listening={listening}
+                startListening={
+                  startListening
+                }
+              />
+            </div>
 
-        <div className="right-panel">
-          <ExpenseList expenses={expenses} />
-        </div>
-      </div>
+            <div className="right-panel">
+              <ExpenseList
+                expenses={expenses}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
+      {/* Signup Modal */}
       {showSignup && (
-        <Modal onClose={() => setShowSignup(false)}>
+        <Modal
+          onClose={() =>
+            setShowSignup(false)
+          }
+        >
           <Signup
             openLogin={() => {
               setShowSignup(false);
@@ -121,8 +174,13 @@ function App() {
         </Modal>
       )}
 
+      {/* Login Modal */}
       {showLogin && (
-        <Modal onClose={() => setShowLogin(false)}>
+        <Modal
+          onClose={() =>
+            setShowLogin(false)
+          }
+        >
           <Login
             onLoginSuccess={() => {
               setShowLogin(false);
@@ -136,6 +194,19 @@ function App() {
             }}
           />
         </Modal>
+      )}
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <Profile
+              closeProfile={() =>
+                setShowProfile(false)
+              }
+            />
+          </div>
+        </div>
       )}
     </div>
   );
