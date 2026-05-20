@@ -1,8 +1,14 @@
 import "../styles/welcome.css";
 
+import { auth } from "../firebase";
+
 function Welcome({
   openProfile,
 }) {
+  const isProfileComplete =
+    auth.currentUser?.displayName &&
+    auth.currentUser?.photoURL;
+
   return (
     <div className="welcome-page">
       <div className="welcome-box">
@@ -11,18 +17,28 @@ function Welcome({
           Tracker!!!
         </h2>
 
-        <div className="profile-alert">
-          <span>
-            Your profile is incomplete.
-          </span>
+        {!isProfileComplete ? (
+          <div className="profile-alert">
+            <span>
+              Your profile is
+              incomplete.
+            </span>
 
-          <button
-            type="button"
-            onClick={openProfile}
-          >
-            Complete now
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={openProfile}
+            >
+              Complete now
+            </button>
+          </div>
+        ) : (
+          <div className="profile-complete">
+            <span>
+              Profile completed
+              successfully 😀
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
 
 import "../styles/profile.css";
 
@@ -13,6 +16,56 @@ function Profile({ closeProfile }) {
   const [photoUrl, setPhotoUrl] =
     useState("");
 
+  useEffect(() => {
+    const fetchUserData =
+      async () => {
+        try {
+          const token =
+            await auth.currentUser.getIdToken();
+
+          const response =
+            await fetch(
+              `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${
+                import.meta.env
+                  .VITE_FIREBASE_API_KEY
+              }`,
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body: JSON.stringify({
+                  idToken: token,
+                }),
+              }
+            );
+
+          const data =
+            await response.json();
+
+          const user =
+            data.users[0];
+
+          setFullName(
+            user.displayName || ""
+          );
+
+          setPhotoUrl(
+            user.photoUrl || ""
+          );
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+    if (auth.currentUser) {
+      fetchUserData();
+    }
+  }, []);
+
   const handleUpdate = async (e) => {
     e.preventDefault();
 
@@ -21,6 +74,7 @@ function Profile({ closeProfile }) {
         auth.currentUser,
         {
           displayName: fullName,
+
           photoURL: photoUrl,
         }
       );
@@ -36,12 +90,11 @@ function Profile({ closeProfile }) {
   return (
     <div className="profile-container">
       <div className="profile-top">
-        <p>
-          Winners never quit, Quitters
-          never win.
-        </p>
-
-        <button onClick={closeProfile}>
+         
+        <button
+          type="button"
+          onClick={closeProfile}
+        >
           Cancel
         </button>
       </div>
@@ -49,13 +102,17 @@ function Profile({ closeProfile }) {
       <div className="profile-box">
         <h2>Contact Details</h2>
 
-        <form onSubmit={handleUpdate}>
+        <form
+          onSubmit={handleUpdate}
+        >
           <input
             type="text"
             placeholder="Full Name"
             value={fullName}
             onChange={(e) =>
-              setFullName(e.target.value)
+              setFullName(
+                e.target.value
+              )
             }
           />
 
@@ -64,7 +121,9 @@ function Profile({ closeProfile }) {
             placeholder="Profile Photo URL"
             value={photoUrl}
             onChange={(e) =>
-              setPhotoUrl(e.target.value)
+              setPhotoUrl(
+                e.target.value
+              )
             }
           />
 
