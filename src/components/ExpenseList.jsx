@@ -1,5 +1,9 @@
 const ExpenseList = ({
   expenses,
+ 
+  handleDeleteExpense,
+ 
+  handleEditClick,
 }) => {
 
   return (
@@ -15,32 +19,31 @@ const ExpenseList = ({
       ) : (
 
         expenses.map(
-          (exp, index) => (
+          (exp) => (
 
             <div
-              key={index}
+              key={exp.id}
               className="expense"
             >
  
               <h3>
                 ₹{exp.amount}
               </h3>
-
+ 
               <p>
                 <strong>
                   Description:
                 </strong>{" "}
                 {exp.description}
               </p>
-
-  
+ 
               <p>
                 <strong>
                   Category:
                 </strong>{" "}
                 {exp.category}
               </p>
- 
+
               {exp.title && (
                 <p>
                   <strong>
@@ -58,6 +61,30 @@ const ExpenseList = ({
                   {exp.date}
                 </p>
               )}
+
+              <div className="expense-buttons">
+
+                <button
+                  className="edit-btn"
+                  onClick={() =>
+                    handleEditClick(exp)
+                  }
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="delete-btn"
+                  onClick={() =>
+                    handleDeleteExpense(
+                      exp.id
+                    )
+                  }
+                >
+                  Delete
+                </button>
+
+              </div>
 
             </div>
           )

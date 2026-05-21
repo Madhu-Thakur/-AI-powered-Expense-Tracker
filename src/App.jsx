@@ -42,6 +42,8 @@ function App() {
 
   const [category, setCategory] = useState("");
 
+  const [editingId, setEditingId] = useState(null);
+
   const handleAddAI = async (text) => {
     const input = text || aiInput;
 
@@ -82,60 +84,120 @@ function App() {
   };
 
   //----------------------------------new changed expense add function
-   const handleAddExpense = async () => {
-  if (!amount || !description || !category) {
-    alert("Please fill all fields");
+  const handleAddExpense = async () => {
+    if (!amount || !description || !category) {
+      alert("Please fill all fields");
 
-    return;
-  }
-
-  const newExpense = {
-    amount: amount,
-    description: description,
-    category: category,
-    date: new Date().toLocaleDateString(),
-  };
-
-  try {
-    const response = await fetch(
-      "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(newExpense),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to add expense");
+      return;
     }
 
-    setExpenses((prev) => [
-      ...prev,
-      newExpense,
-    ]);
+    const newExpense = {
+      amount: amount,
+      description: description,
+      category: category,
+      date: new Date().toLocaleDateString(),
+    };
 
-    setAmount("");
-    setDescription("");
-    setCategory("");
-  } catch (error) {
-    alert(error.message);
-  }
-};
+    try {
+      if (editingId) {
+        await fetch(
+          `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${editingId}.json`,
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify(newExpense),
+          },
+        );
+
+        setExpenses((prev) =>
+          prev.map((expense) =>
+            expense.id === editingId
+              ? {
+                  ...newExpense,
+                  id: editingId,
+                }
+              : expense,
+          ),
+        );
+
+        setEditingId(null);
+      } else {
+        const response = await fetch(
+          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify(newExpense),
+          },
+        );
+
+        const data = await response.json();
+
+        setExpenses((prev) => [
+          ...prev,
+          {
+            id: data.name,
+            ...newExpense,
+          },
+        ]);
+      }
+      setAmount("");
+      setDescription("");
+      setCategory("");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    try {
+      await fetch(
+        `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${id}.json`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+
+      console.log("Expense successfully deleted");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleEditClick = (expense) => {
+    setAmount(expense.amount);
+
+    setDescription(expense.description);
+
+    setCategory(expense.category);
+
+    setEditingId(expense.id);
+  };
 
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
-        const response = await fetch("https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json");
+        const response = await fetch(
+          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+        );
 
         const data = await response.json();
 
         if (data) {
-          const loadedExpenses = Object.values(data);
+          const loadedExpenses = Object.keys(data).map((key) => ({
+            id: key,
+            ...data[key],
+          }));
 
           setExpenses(loadedExpenses);
         }
@@ -211,7 +273,11 @@ function App() {
               />
             </div>
             <div className="right-panel">
-              <ExpenseList expenses={expenses} />
+              <ExpenseList
+                expenses={expenses}
+                handleDeleteExpense={handleDeleteExpense}
+                handleEditClick={handleEditClick}
+              />
             </div>
           </div>
         </>
