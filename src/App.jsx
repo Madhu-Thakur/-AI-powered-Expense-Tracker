@@ -35,6 +35,13 @@ function App() {
 
   const [showProfile, setShowProfile] = useState(false);
 
+  //--------------------------new changed expense form states
+  const [amount, setAmount] = useState("");
+
+  const [description, setDescription] = useState("");
+
+  const [category, setCategory] = useState("");
+
   const handleAddAI = async (text) => {
     const input = text || aiInput;
 
@@ -72,6 +79,29 @@ function App() {
     } catch (error) {
       alert(error.message);
     }
+  };
+
+  //----------------------------------new changed expense add function
+  const handleAddExpense = () => {
+    if (!amount || !description || !category) {
+      alert("Please fill all fields");
+
+      return;
+    }
+
+    const newExpense = {
+      amount,
+      description,
+      category,
+      date: new Date().toLocaleDateString(),
+    };
+
+    setExpenses((prev) => [...prev, newExpense]);
+
+    // RESET FORM
+    setAmount("");
+    setDescription("");
+    setCategory("");
   };
   return (
     <div className="app">
@@ -116,7 +146,31 @@ function App() {
 
       {/*-----------------------IF LOGGED IN------------------------*/}
       {isLoggedIn ? (
-        <Welcome openProfile={() => setShowProfile(true)} />
+        <>
+          <Welcome openProfile={() => setShowProfile(true)} />
+          <div className="dashboard">
+            <div className="left-panel">
+              <ExpenseForm
+                aiInput={aiInput}
+                setAiInput={setAiInput}
+                handleAddAI={handleAddAI}
+                loading={loading}
+                listening={listening}
+                startListening={startListening}
+                amount={amount}
+                setAmount={setAmount}
+                description={description}
+                setDescription={setDescription}
+                category={category}
+                setCategory={setCategory}
+                handleAddExpense={handleAddExpense}
+              />
+            </div>
+            <div className="right-panel">
+              <ExpenseList expenses={expenses} />
+            </div>
+          </div>
+        </>
       ) : (
         <>
           {/*-------------------Hero Section-------------------------- */}
@@ -130,7 +184,7 @@ function App() {
           </section>
 
           {/*-------------------Dashboard-------------------------- */}
-          <div className="dashboard">
+          {/* <div className="dashboard">
             <div className="left-panel">
               <ExpenseForm
                 aiInput={aiInput}
@@ -145,7 +199,7 @@ function App() {
             <div className="right-panel">
               <ExpenseList expenses={expenses} />
             </div>
-          </div>
+          </div> */}
         </>
       )}
 

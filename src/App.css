@@ -192,13 +192,37 @@ input {
   margin-top: 5px;
 }
 
-/*------------------------------- Responsive--------------------------- */
+.manual-expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
 
+.manual-expense-form select,
+.manual-expense-form input {
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.manual-expense-form button {
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+ 
 /*-------------------------------logout button--------------------------- */
 .logout-btn {
   background-color: crimson;
 }
-
+/*------------------------------- Responsive--------------------------- */
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;
