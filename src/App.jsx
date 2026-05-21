@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import "./App.css";
 
@@ -82,27 +82,71 @@ function App() {
   };
 
   //----------------------------------new changed expense add function
-  const handleAddExpense = () => {
-    if (!amount || !description || !category) {
-      alert("Please fill all fields");
+   const handleAddExpense = async () => {
+  if (!amount || !description || !category) {
+    alert("Please fill all fields");
 
-      return;
+    return;
+  }
+
+  const newExpense = {
+    amount: amount,
+    description: description,
+    category: category,
+    date: new Date().toLocaleDateString(),
+  };
+
+  try {
+    const response = await fetch(
+      "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(newExpense),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to add expense");
     }
 
-    const newExpense = {
-      amount,
-      description,
-      category,
-      date: new Date().toLocaleDateString(),
-    };
+    setExpenses((prev) => [
+      ...prev,
+      newExpense,
+    ]);
 
-    setExpenses((prev) => [...prev, newExpense]);
-
-    // RESET FORM
     setAmount("");
     setDescription("");
     setCategory("");
-  };
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const response = await fetch("https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json");
+
+        const data = await response.json();
+
+        if (data) {
+          const loadedExpenses = Object.values(data);
+
+          setExpenses(loadedExpenses);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchExpenses();
+  }, []);
+
   return (
     <div className="app">
       {/*-----------------------------------------Navbar-----------------------------------------*/}
