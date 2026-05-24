@@ -16,224 +16,378 @@ import Profile from "./components/Profile";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+
 import { generateExpense } from "./services/geminiService";
 
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 
 function App() {
-  const [aiInput, setAiInput] = useState("");
 
-  const [expenses, setExpenses] = useState([]);
+  const [aiInput, setAiInput] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [showSignup, setShowSignup] = useState(false);
+  const [showSignup, setShowSignup] =
+    useState(false);
 
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] =
+    useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showProfile, setShowProfile] =
+    useState(false);
 
-  const [showProfile, setShowProfile] = useState(false);
+  // Expense Form States
+  const [amount, setAmount] =
+    useState("");
 
-  //--------------------------new changed expense form states
-  const [amount, setAmount] = useState("");
+  const [description, setDescription] =
+    useState("");
 
-  const [description, setDescription] = useState("");
+  const [category, setCategory] =
+    useState("");
 
-  const [category, setCategory] = useState("");
+  const [editingId, setEditingId] =
+    useState(null);
 
-  const [editingId, setEditingId] = useState(null);
+  const dispatch = useDispatch();
 
-  const handleAddAI = async (text) => {
+  /*---------------------------------Redux Auth State------------------------------*/
+  const isLoggedIn = useSelector(
+    (state) => state.auth.isLoggedIn
+  );
+
+  /*---------------------------------Redux Expense State------------------------------*/
+  const expenses = useSelector(
+    (state) =>
+      state.expense.expenses
+  );
+  const totalExpense =
+  expenses.reduce(
+    (total, expense) =>
+      total +
+      Number(expense.amount || 0),
+    0
+  );
+
+  /*---------------------------------AI Expense State------------------------------*/
+  const handleAddAI = async (
+    text
+  ) => {
+
     const input = text || aiInput;
 
     if (!input) return;
 
     try {
+
       setLoading(true);
 
-      const expense = await generateExpense(input);
+      const expense =
+        await generateExpense(input);
 
-      setExpenses((prev) => [...prev, expense]);
+      dispatch({
+        type: "ADD_EXPENSE",
+
+        payload: expense,
+      });
 
       setAiInput("");
+
     } catch (error) {
+
       console.error(error);
 
-      alert("AI could not process input");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const { listening, startListening } = useSpeechRecognition(handleAddAI);
-
-  // -----------------------logout function----------------------
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-
-      localStorage.removeItem("token");
-
-      setIsLoggedIn(false);
-
-      alert("Logged out successfully");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  //----------------------------------new changed expense add function
-  const handleAddExpense = async () => {
-    if (!amount || !description || !category) {
-      alert("Please fill all fields");
-
-      return;
-    }
-
-    const newExpense = {
-      amount: amount,
-      description: description,
-      category: category,
-      date: new Date().toLocaleDateString(),
-    };
-
-    try {
-      if (editingId) {
-        await fetch(
-          `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${editingId}.json`,
-          {
-            method: "PUT",
-
-            headers: {
-              "Content-Type": "application/json",
-            },
-
-            body: JSON.stringify(newExpense),
-          },
-        );
-
-        setExpenses((prev) =>
-          prev.map((expense) =>
-            expense.id === editingId
-              ? {
-                  ...newExpense,
-                  id: editingId,
-                }
-              : expense,
-          ),
-        );
-
-        setEditingId(null);
-      } else {
-        const response = await fetch(
-          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json",
-            },
-
-            body: JSON.stringify(newExpense),
-          },
-        );
-
-        const data = await response.json();
-
-        setExpenses((prev) => [
-          ...prev,
-          {
-            id: data.name,
-            ...newExpense,
-          },
-        ]);
-      }
-      setAmount("");
-      setDescription("");
-      setCategory("");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const handleDeleteExpense = async (id) => {
-    try {
-      await fetch(
-        `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${id}.json`,
-        {
-          method: "DELETE",
-        },
+      alert(
+        "AI could not process input"
       );
 
-      setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+    } finally {
 
-      console.log("Expense successfully deleted");
-    } catch (error) {
-      console.log(error);
+      setLoading(false);
+
     }
   };
 
-  const handleEditClick = (expense) => {
+  const {
+    listening,
+    startListening,
+  } = useSpeechRecognition(
+    handleAddAI
+  );
+
+  /*---------------------------------Logout State------------------------------*/
+  const handleLogout =
+    async () => {
+
+      try {
+
+        await signOut(auth);
+
+        localStorage.removeItem(
+          "token"
+        );
+
+        dispatch({
+          type: "LOGOUT",
+        });
+
+        alert(
+          "Logged out successfully"
+        );
+
+      } catch (error) {
+
+        alert(error.message);
+
+      }
+    };
+
+  /*---------------------------------Add/Update Expense State------------------------------*/
+  const handleAddExpense =
+    async () => {
+
+      if (
+        !amount ||
+        !description ||
+        !category
+      ) {
+
+        alert(
+          "Please fill all fields"
+        );
+
+        return;
+      }
+
+      const newExpense = {
+        amount,
+        description,
+        category,
+        date:
+          new Date().toLocaleDateString(),
+      };
+
+      try {
+
+        // UPDATE EXPENSE
+        if (editingId) {
+
+          await fetch(
+            `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${editingId}.json`,
+            {
+              method: "PUT",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify(
+                newExpense
+              ),
+            }
+          );
+
+          dispatch({
+            type: "UPDATE_EXPENSE",
+
+            payload: {
+              ...newExpense,
+
+              id: editingId,
+            },
+          });
+
+          setEditingId(null);
+
+        } else {
+
+          // ADD EXPENSE
+          const response =
+            await fetch(
+              "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body: JSON.stringify(
+                  newExpense
+                ),
+              }
+            );
+
+          const data =
+            await response.json();
+
+          dispatch({
+            type: "ADD_EXPENSE",
+
+            payload: {
+              id: data.name,
+
+              ...newExpense,
+            },
+          });
+        }
+
+        setAmount("");
+        setDescription("");
+        setCategory("");
+
+      } catch (error) {
+
+        alert(error.message);
+
+      }
+    };
+
+  /*---------------------------------Delete Expense State------------------------------*/
+  const handleDeleteExpense =
+    async (id) => {
+
+      try {
+
+        await fetch(
+          `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${id}.json`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        dispatch({
+          type: "DELETE_EXPENSE",
+
+          payload: id,
+        });
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+    };
+
+  /*---------------------------------Edit Expense State------------------------------*/
+  const handleEditClick = (
+    expense
+  ) => {
+
     setAmount(expense.amount);
 
-    setDescription(expense.description);
+    setDescription(
+      expense.description
+    );
 
     setCategory(expense.category);
 
     setEditingId(expense.id);
   };
 
+  /*---------------------------------Fetch Expenses State------------------------------*/
   useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const response = await fetch(
-          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
-        );
 
-        const data = await response.json();
+    const fetchExpenses =
+      async () => {
 
-        if (data) {
-          const loadedExpenses = Object.keys(data).map((key) => ({
-            id: key,
-            ...data[key],
-          }));
+        try {
 
-          setExpenses(loadedExpenses);
+          const response =
+            await fetch(
+              "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json"
+            );
+
+          const data =
+            await response.json();
+
+          if (data) {
+
+            const loadedExpenses =
+              Object.keys(data).map(
+                (key) => ({
+                  id: key,
+
+                  ...data[key],
+                })
+              );
+
+            dispatch({
+              type: "SET_EXPENSES",
+
+              payload:
+                loadedExpenses,
+            });
+          }
+
+        } catch (error) {
+
+          console.log(error);
+
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      };
 
     fetchExpenses();
-  }, []);
+
+  }, [dispatch]);
 
   return (
+
     <div className="app">
-      {/*-----------------------------------------Navbar-----------------------------------------*/}
+ 
+ /*---------------------------------Navbar------------------------------*/
       <nav className="navbar">
-        <div className="logo">AI Expense Tracker</div>
+
+        <div className="logo">
+          AI Expense Tracker
+        </div>
 
         <div className="nav-buttons">
-          {isLoggedIn ? (
-            <button
-              type="button"
-              className="nav-btn logout-btn"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          ) : (
+
+       {isLoggedIn ? (
+
+  <>
+
+    <button
+      type="button"
+      className="nav-btn logout-btn"
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
+
+    {totalExpense > 10000 && (
+      <button className="premium-btn">
+        Activate Premium
+      </button>
+    )}
+
+  </>
+
+) : (
+
             <>
-              <button type="button" className="nav-btn add-btn">
+              <button
+                type="button"
+                className="nav-btn add-btn"
+              >
                 Add Expense
               </button>
 
               <button
                 type="button"
                 className="nav-btn login-btn"
-                onClick={() => setShowLogin(true)}
+                onClick={() =>
+                  setShowLogin(
+                    true
+                  )
+                }
               >
                 Login
               </button>
@@ -241,117 +395,193 @@ function App() {
               <button
                 type="button"
                 className="nav-btn signup-btn"
-                onClick={() => setShowSignup(true)}
+                onClick={() =>
+                  setShowSignup(
+                    true
+                  )
+                }
               >
                 Signup
               </button>
             </>
           )}
+
         </div>
       </nav>
 
-      {/*-----------------------IF LOGGED IN------------------------*/}
+      /*---------------------------------Hero / Dashboard------------------------------*/
       {isLoggedIn ? (
+
         <>
-          <Welcome openProfile={() => setShowProfile(true)} />
+          <Welcome
+            openProfile={() =>
+              setShowProfile(
+                true
+              )
+            }
+          />
+
           <div className="dashboard">
+
             <div className="left-panel">
+
               <ExpenseForm
                 aiInput={aiInput}
-                setAiInput={setAiInput}
-                handleAddAI={handleAddAI}
+                setAiInput={
+                  setAiInput
+                }
+                handleAddAI={
+                  handleAddAI
+                }
                 loading={loading}
-                listening={listening}
-                startListening={startListening}
+                listening={
+                  listening
+                }
+                startListening={
+                  startListening
+                }
                 amount={amount}
-                setAmount={setAmount}
-                description={description}
-                setDescription={setDescription}
-                category={category}
-                setCategory={setCategory}
-                handleAddExpense={handleAddExpense}
+                setAmount={
+                  setAmount
+                }
+                description={
+                  description
+                }
+                setDescription={
+                  setDescription
+                }
+                category={
+                  category
+                }
+                setCategory={
+                  setCategory
+                }
+                handleAddExpense={
+                  handleAddExpense
+                }
               />
+
             </div>
+
             <div className="right-panel">
+
               <ExpenseList
-                expenses={expenses}
-                handleDeleteExpense={handleDeleteExpense}
-                handleEditClick={handleEditClick}
+                expenses={
+                  expenses
+                }
+                handleDeleteExpense={
+                  handleDeleteExpense
+                }
+                handleEditClick={
+                  handleEditClick
+                }
               />
+
             </div>
+
           </div>
         </>
+
       ) : (
+
         <>
-          {/*-------------------Hero Section-------------------------- */}
           <section className="hero">
-            <h1>Manage Your Expenses Smartly with AI</h1>
+
+            <h1>
+              Manage Your
+              Expenses Smartly
+              with AI
+            </h1>
 
             <p>
-              Track daily expenses, use voice input, and let AI organize your
-              spending effortlessly.
+              Track daily
+              expenses, use voice
+              input, and let AI
+              organize your
+              spending
+              effortlessly.
             </p>
+
           </section>
-
-          {/*-------------------Dashboard-------------------------- */}
-          {/* <div className="dashboard">
-            <div className="left-panel">
-              <ExpenseForm
-                aiInput={aiInput}
-                setAiInput={setAiInput}
-                handleAddAI={handleAddAI}
-                loading={loading}
-                listening={listening}
-                startListening={startListening}
-              />
-            </div>
-
-            <div className="right-panel">
-              <ExpenseList expenses={expenses} />
-            </div>
-          </div> */}
         </>
       )}
 
-      {/*-------------------Signup Modal-------------------------- */}
+      /*---------------------------------Signup Modal------------------------------*/
       {showSignup && (
-        <Modal onClose={() => setShowSignup(false)}>
+
+        <Modal
+          onClose={() =>
+            setShowSignup(false)
+          }
+        >
+
           <Signup
             openLogin={() => {
-              setShowSignup(false);
 
-              setShowLogin(true);
+              setShowSignup(
+                false
+              );
+
+              setShowLogin(
+                true
+              );
             }}
           />
+
         </Modal>
       )}
 
-      {/*-------------------Login Modal-------------------------- */}
+      /*---------------------------------LOGIN MODAL------------------------------*/
       {showLogin && (
-        <Modal onClose={() => setShowLogin(false)}>
+
+        <Modal
+          onClose={() =>
+            setShowLogin(false)
+          }
+        >
+
           <Login
             onLoginSuccess={() => {
-              setShowLogin(false);
 
-              setIsLoggedIn(true);
+              setShowLogin(
+                false
+              );
             }}
             openSignup={() => {
-              setShowLogin(false);
 
-              setShowSignup(true);
+              setShowLogin(
+                false
+              );
+
+              setShowSignup(
+                true
+              );
             }}
           />
+
         </Modal>
       )}
 
-      {/*-------------------Profile Modal-------------------------- */}
+      /*---------------------------------Profile Modal------------------------------*/
       {showProfile && (
+
         <div className="modal-overlay">
+
           <div className="modal-content">
-            <Profile closeProfile={() => setShowProfile(false)} />
+
+            <Profile
+              closeProfile={() =>
+                setShowProfile(
+                  false
+                )
+              }
+            />
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }

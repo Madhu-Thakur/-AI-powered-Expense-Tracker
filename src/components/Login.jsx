@@ -5,6 +5,7 @@ import "../styles/auth.css";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth } from "../firebase";
+import { useDispatch } from "react-redux";
 
 function Login({ onLoginSuccess, openSignup }) {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ function Login({ onLoginSuccess, openSignup }) {
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +38,7 @@ function Login({ onLoginSuccess, openSignup }) {
       const token = await userCredential.user.getIdToken();
 
       localStorage.setItem("token", token);
-
+      dispatch({ type: "LOGIN", payload: token });
       alert("Login Successful");
 
       onLoginSuccess();

@@ -246,6 +246,17 @@ input {
 .logout-btn {
   background-color: crimson;
 }
+
+.premium-btn {
+  background-color: gold;
+  color: black;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
 /*------------------------------- Responsive--------------------------- */
 @media (max-width: 900px) {
   .dashboard {
