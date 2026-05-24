@@ -257,6 +257,71 @@ input {
   font-weight: bold;
   margin-right: 10px;
 }
+ 
+/*------------------------------- Dark Theme ---------------------------*/
+
+.dark-theme {
+  background-color: #121212;
+  color: white;
+  min-height: 100vh;
+}
+
+.dark-theme .navbar {
+  background: #16213e;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .logo {
+  color: #4a9eff;
+}
+
+.dark-theme .card,
+.dark-theme .left-panel,
+.dark-theme .right-panel {
+  background: #16213e;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme input,
+.dark-theme select {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+}
+
+.dark-theme .expense {
+  border-bottom: 1px solid #333;
+}
+
+.dark-theme .hero h1,
+.dark-theme .hero p,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme p,
+.dark-theme strong,
+.dark-theme .expense p {
+  color: #e0e0e0;
+}
+
+.dark-theme .manual-expense-form button,
+.dark-theme .btn.blue {
+  background: #4a9eff;
+}
+
+/*------------------------------- Download Button ---------------------------*/
+
+.download-btn {
+  background-color: teal;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
 /*------------------------------- Responsive--------------------------- */
 @media (max-width: 900px) {
   .dashboard {

@@ -24,70 +24,48 @@ import { generateExpense } from "./services/geminiService";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 
 function App() {
+  const [aiInput, setAiInput] = useState("");
 
-  const [aiInput, setAiInput] =
-    useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
-  const [showSignup, setShowSignup] =
-    useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
-  const [showLogin, setShowLogin] =
-    useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
-  const [showProfile, setShowProfile] =
-    useState(false);
+  /*---------------------------------Expense Form State------------------------------*/
+  const [amount, setAmount] = useState("");
 
-  // Expense Form States
-  const [amount, setAmount] =
-    useState("");
+  const [description, setDescription] = useState("");
 
-  const [description, setDescription] =
-    useState("");
+  const [category, setCategory] = useState("");
 
-  const [category, setCategory] =
-    useState("");
-
-  const [editingId, setEditingId] =
-    useState(null);
+  const [editingId, setEditingId] = useState(null);
 
   const dispatch = useDispatch();
 
   /*---------------------------------Redux Auth State------------------------------*/
-  const isLoggedIn = useSelector(
-    (state) => state.auth.isLoggedIn
-  );
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const darkMode = useSelector((state) => state.theme.darkMode);
 
   /*---------------------------------Redux Expense State------------------------------*/
-  const expenses = useSelector(
-    (state) =>
-      state.expense.expenses
-  );
-  const totalExpense =
-  expenses.reduce(
-    (total, expense) =>
-      total +
-      Number(expense.amount || 0),
-    0
+  const expenses = useSelector((state) => state.expense.expenses);
+  const totalExpense = expenses.reduce(
+    (total, expense) => total + Number(expense.amount || 0),
+    0,
   );
 
   /*---------------------------------AI Expense State------------------------------*/
-  const handleAddAI = async (
-    text
-  ) => {
-
+  const handleAddAI = async (text) => {
     const input = text || aiInput;
 
     if (!input) return;
 
     try {
-
       setLoading(true);
 
-      const expense =
-        await generateExpense(input);
+      const expense = await generateExpense(input);
 
       dispatch({
         type: "ADD_EXPENSE",
@@ -96,492 +74,412 @@ function App() {
       });
 
       setAiInput("");
-
     } catch (error) {
-
       console.error(error);
 
-      alert(
-        "AI could not process input"
-      );
-
+      alert("AI could not process input");
     } finally {
-
       setLoading(false);
-
     }
   };
 
-  const {
-    listening,
-    startListening,
-  } = useSpeechRecognition(
-    handleAddAI
-  );
+  const { listening, startListening } = useSpeechRecognition(handleAddAI);
 
   /*---------------------------------Logout State------------------------------*/
-  const handleLogout =
-    async () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
 
-      try {
+      localStorage.removeItem("token");
 
-        await signOut(auth);
+      dispatch({
+        type: "LOGOUT",
+      });
 
-        localStorage.removeItem(
-          "token"
-        );
-
-        dispatch({
-          type: "LOGOUT",
-        });
-
-        alert(
-          "Logged out successfully"
-        );
-
-      } catch (error) {
-
-        alert(error.message);
-
-      }
-    };
+      alert("Logged out successfully");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   /*---------------------------------Add/Update Expense State------------------------------*/
-  const handleAddExpense =
-    async () => {
+  const handleAddExpense = async () => {
+    if (!amount || !description || !category) {
+      alert("Please fill all fields");
 
-      if (
-        !amount ||
-        !description ||
-        !category
-      ) {
+      return;
+    }
 
-        alert(
-          "Please fill all fields"
-        );
-
-        return;
-      }
-
-      const newExpense = {
-        amount,
-        description,
-        category,
-        date:
-          new Date().toLocaleDateString(),
-      };
-
-      try {
-
-        // UPDATE EXPENSE
-        if (editingId) {
-
-          await fetch(
-            `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${editingId}.json`,
-            {
-              method: "PUT",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body: JSON.stringify(
-                newExpense
-              ),
-            }
-          );
-
-          dispatch({
-            type: "UPDATE_EXPENSE",
-
-            payload: {
-              ...newExpense,
-
-              id: editingId,
-            },
-          });
-
-          setEditingId(null);
-
-        } else {
-
-          // ADD EXPENSE
-          const response =
-            await fetch(
-              "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "application/json",
-                },
-
-                body: JSON.stringify(
-                  newExpense
-                ),
-              }
-            );
-
-          const data =
-            await response.json();
-
-          dispatch({
-            type: "ADD_EXPENSE",
-
-            payload: {
-              id: data.name,
-
-              ...newExpense,
-            },
-          });
-        }
-
-        setAmount("");
-        setDescription("");
-        setCategory("");
-
-      } catch (error) {
-
-        alert(error.message);
-
-      }
+    const newExpense = {
+      amount,
+      description,
+      category,
+      date: new Date().toLocaleDateString(),
     };
 
-  /*---------------------------------Delete Expense State------------------------------*/
-  const handleDeleteExpense =
-    async (id) => {
-
-      try {
-
+    try {
+      if (editingId) {
         await fetch(
-          `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${id}.json`,
+          `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${editingId}.json`,
           {
-            method: "DELETE",
-          }
+            method: "PUT",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify(newExpense),
+          },
         );
 
         dispatch({
-          type: "DELETE_EXPENSE",
+          type: "UPDATE_EXPENSE",
 
-          payload: id,
+          payload: {
+            ...newExpense,
+
+            id: editingId,
+          },
         });
 
-      } catch (error) {
+        setEditingId(null);
+      } else {
+      
+        const response = await fetch(
+          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+          {
+            method: "POST",
 
-        console.log(error);
+            headers: {
+              "Content-Type": "application/json",
+            },
 
+            body: JSON.stringify(newExpense),
+          },
+        );
+
+        const data = await response.json();
+
+        dispatch({
+          type: "ADD_EXPENSE",
+
+          payload: {
+            id: data.name,
+
+            ...newExpense,
+          },
+        });
       }
-    };
+
+      setAmount("");
+      setDescription("");
+      setCategory("");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  /*---------------------------------Delete Expense State------------------------------*/
+  const handleDeleteExpense = async (id) => {
+    try {
+      await fetch(
+        `https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses/${id}.json`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      dispatch({
+        type: "DELETE_EXPENSE",
+
+        payload: id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   /*---------------------------------Edit Expense State------------------------------*/
-  const handleEditClick = (
-    expense
-  ) => {
-
+  const handleEditClick = (expense) => {
     setAmount(expense.amount);
 
-    setDescription(
-      expense.description
-    );
+    setDescription(expense.description);
 
     setCategory(expense.category);
 
     setEditingId(expense.id);
   };
 
+  // ---------------- DOWNLOAD CSV ----------------
+const downloadCSV = () => {
+
+  const headers = [
+    "Amount",
+    "Description",
+    "Category",
+    "Date",
+  ];
+
+  const rows = expenses.map(
+    (expense) => [
+      expense.amount,
+
+      expense.description,
+
+      expense.category,
+
+      expense.date,
+    ]
+  );
+
+  const csvContent = [
+    headers,
+    ...rows,
+  ]
+    .map((row) =>
+      row.join(",")
+    )
+    .join("\n");
+
+  const blob = new Blob(
+    [csvContent],
+    {
+      type: "text/csv",
+    }
+  );
+
+  const url =
+    window.URL.createObjectURL(
+      blob
+    );
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+
+  a.download =
+    "expenses.csv";
+
+  a.click();
+
+  window.URL.revokeObjectURL(
+    url
+  );
+};
+
   /*---------------------------------Fetch Expenses State------------------------------*/
   useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const response = await fetch(
+          "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json",
+        );
 
-    const fetchExpenses =
-      async () => {
+        const data = await response.json();
 
-        try {
+        if (data) {
+          const loadedExpenses = Object.keys(data).map((key) => ({
+            id: key,
 
-          const response =
-            await fetch(
-              "https://expense-tracker-c15d3-default-rtdb.firebaseio.com/expenses.json"
-            );
+            ...data[key],
+          }));
 
-          const data =
-            await response.json();
+          dispatch({
+            type: "SET_EXPENSES",
 
-          if (data) {
-
-            const loadedExpenses =
-              Object.keys(data).map(
-                (key) => ({
-                  id: key,
-
-                  ...data[key],
-                })
-              );
-
-            dispatch({
-              type: "SET_EXPENSES",
-
-              payload:
-                loadedExpenses,
-            });
-          }
-
-        } catch (error) {
-
-          console.log(error);
-
+            payload: loadedExpenses,
+          });
         }
-      };
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
     fetchExpenses();
-
   }, [dispatch]);
 
   return (
-
-    <div className="app">
- 
- /*---------------------------------Navbar------------------------------*/
+    <div className={`app ${darkMode ? "dark-theme" : ""}`}>
+      {/*---------------------------------Navbar------------------------------*/}
       <nav className="navbar">
 
-        <div className="logo">
-          AI Expense Tracker
-        </div>
+  <div className="logo">
+    AI Expense Tracker
+  </div>
 
-        <div className="nav-buttons">
+  <div className="nav-buttons">
 
-       {isLoggedIn ? (
+    {isLoggedIn ? (
+      <>
 
-  <>
+        <button
+          type="button"
+          className="nav-btn logout-btn"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
 
-    <button
-      type="button"
-      className="nav-btn logout-btn"
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
+        {totalExpense > 10000 && (
+          <>
 
-    {totalExpense > 10000 && (
-      <button className="premium-btn">
-        Activate Premium
-      </button>
+            <button
+              className="premium-btn"
+              onClick={() =>
+                dispatch({
+                  type: "TOGGLE_THEME",
+                })
+              }
+            >
+              Activate Premium
+            </button>
+
+            <button
+              className="download-btn"
+              onClick={downloadCSV}
+            >
+              Download CSV
+            </button>
+
+          </>
+        )}
+
+      </>
+    ) : (
+      <>
+
+        <button
+          type="button"
+          className="nav-btn add-btn"
+        >
+          Add Expense
+        </button>
+
+        <button
+          type="button"
+          className="nav-btn login-btn"
+          onClick={() =>
+            setShowLogin(true)
+          }
+        >
+          Login
+        </button>
+
+        <button
+          type="button"
+          className="nav-btn signup-btn"
+          onClick={() =>
+            setShowSignup(true)
+          }
+        >
+          Signup
+        </button>
+
+      </>
     )}
 
+  </div>
+
+</nav>
+
+{/* ---------------- HERO / DASHBOARD ---------------- */}
+
+{isLoggedIn ? (
+  <>
+    <Welcome
+      openProfile={() =>
+        setShowProfile(true)
+      }
+    />
+
+    <div className="dashboard">
+
+      <div className="left-panel">
+
+        <ExpenseForm
+          aiInput={aiInput}
+          setAiInput={setAiInput}
+          handleAddAI={handleAddAI}
+          loading={loading}
+          listening={listening}
+          startListening={startListening}
+          amount={amount}
+          setAmount={setAmount}
+          description={description}
+          setDescription={setDescription}
+          category={category}
+          setCategory={setCategory}
+          handleAddExpense={handleAddExpense}
+        />
+
+      </div>
+
+      <div className="right-panel">
+
+        <ExpenseList
+          expenses={expenses}
+          handleDeleteExpense={handleDeleteExpense}
+          handleEditClick={handleEditClick}
+        />
+
+      </div>
+
+    </div>
   </>
-
 ) : (
+  <>
+    <section className="hero">
 
-            <>
-              <button
-                type="button"
-                className="nav-btn add-btn"
-              >
-                Add Expense
-              </button>
+      <h1>
+        Manage Your Expenses Smartly with AI
+      </h1>
 
-              <button
-                type="button"
-                className="nav-btn login-btn"
-                onClick={() =>
-                  setShowLogin(
-                    true
-                  )
-                }
-              >
-                Login
-              </button>
+      <p>
+        Track daily expenses,
+        use voice input,
+        and let AI organize your
+        spending effortlessly.
+      </p>
 
-              <button
-                type="button"
-                className="nav-btn signup-btn"
-                onClick={() =>
-                  setShowSignup(
-                    true
-                  )
-                }
-              >
-                Signup
-              </button>
-            </>
-          )}
-
-        </div>
-      </nav>
-
-      /*---------------------------------Hero / Dashboard------------------------------*/
-      {isLoggedIn ? (
-
-        <>
-          <Welcome
-            openProfile={() =>
-              setShowProfile(
-                true
-              )
-            }
-          />
-
-          <div className="dashboard">
-
-            <div className="left-panel">
-
-              <ExpenseForm
-                aiInput={aiInput}
-                setAiInput={
-                  setAiInput
-                }
-                handleAddAI={
-                  handleAddAI
-                }
-                loading={loading}
-                listening={
-                  listening
-                }
-                startListening={
-                  startListening
-                }
-                amount={amount}
-                setAmount={
-                  setAmount
-                }
-                description={
-                  description
-                }
-                setDescription={
-                  setDescription
-                }
-                category={
-                  category
-                }
-                setCategory={
-                  setCategory
-                }
-                handleAddExpense={
-                  handleAddExpense
-                }
-              />
-
-            </div>
-
-            <div className="right-panel">
-
-              <ExpenseList
-                expenses={
-                  expenses
-                }
-                handleDeleteExpense={
-                  handleDeleteExpense
-                }
-                handleEditClick={
-                  handleEditClick
-                }
-              />
-
-            </div>
-
-          </div>
-        </>
-
-      ) : (
-
-        <>
-          <section className="hero">
-
-            <h1>
-              Manage Your
-              Expenses Smartly
-              with AI
-            </h1>
-
-            <p>
-              Track daily
-              expenses, use voice
-              input, and let AI
-              organize your
-              spending
-              effortlessly.
-            </p>
-
-          </section>
-        </>
-      )}
-
-      /*---------------------------------Signup Modal------------------------------*/
+    </section>
+  </>
+)}
+      {/*---------------------------------Signup MODAL------------------------------*/}
       {showSignup && (
-
-        <Modal
-          onClose={() =>
-            setShowSignup(false)
-          }
-        >
-
+        <Modal onClose={() => setShowSignup(false)}>
           <Signup
             openLogin={() => {
+              setShowSignup(false);
 
-              setShowSignup(
-                false
-              );
-
-              setShowLogin(
-                true
-              );
+              setShowLogin(true);
             }}
           />
-
         </Modal>
       )}
-
-      /*---------------------------------LOGIN MODAL------------------------------*/
+      {/*---------------------------------LOGIN MODAL------------------------------*/}
       {showLogin && (
-
-        <Modal
-          onClose={() =>
-            setShowLogin(false)
-          }
-        >
-
+        <Modal onClose={() => setShowLogin(false)}>
           <Login
             onLoginSuccess={() => {
-
-              setShowLogin(
-                false
-              );
+              setShowLogin(false);
             }}
             openSignup={() => {
+              setShowLogin(false);
 
-              setShowLogin(
-                false
-              );
-
-              setShowSignup(
-                true
-              );
+              setShowSignup(true);
             }}
           />
-
         </Modal>
       )}
-
-      /*---------------------------------Profile Modal------------------------------*/
+      {/*---------------------------------Profile Modal------------------------------*/}
       {showProfile && (
-
         <div className="modal-overlay">
-
           <div className="modal-content">
-
-            <Profile
-              closeProfile={() =>
-                setShowProfile(
-                  false
-                )
-              }
-            />
-
+            <Profile closeProfile={() => setShowProfile(false)} />
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
