@@ -1,9 +1,9 @@
-/* Auth Container */
+/*------------------------------- Auth Container--------------------------- */
 .signup-container {
   width: 100%;
 }
 
-/* Auth Form */
+/*------------------------------- Auth Form--------------------------- */
 .signup-form {
   display: flex;
   flex-direction: column;
@@ -17,7 +17,7 @@
   font-size: 24px;
 }
 
-/* Form Inputs */
+/*------------------------------- Form Inputs--------------------------- */
 .signup-form input {
   width: 100%;
   padding: 12px 15px;
@@ -33,7 +33,7 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Form Button */
+/*------------------------------- Form Button--------------------------- */
 .signup-form button[type="submit"] {
   width: 100%;
   padding: 12px;
@@ -55,7 +55,7 @@
   transform: scale(0.98);
 }
 
-/* Error Message */
+/*------------------------------- Error Message--------------------------- */
 .error-message {
   color: #dc2626;
   font-size: 14px;
@@ -66,7 +66,7 @@
   border: 1px solid #fecaca;
 }
 
-/* Forgot Password Link */
+/*------------------------------- Forgot Password Link--------------------------- */
 .forgot-password {
   text-align: right;
   color: #2563eb;
@@ -81,7 +81,7 @@
   text-decoration: underline;
 }
 
-/* Switch Text */
+/*------------------------------- Switch Text--------------------------- */
 .switch-text {
   text-align: center;
   color: #6b7280;

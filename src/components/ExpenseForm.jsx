@@ -56,7 +56,7 @@ const ExpenseForm = ({
 
       <div className="manual-expense-form">
 
-        {/* NEW: Amount input */}
+        {/*-------------------------NEW: Amount input-----------------------------*/}
         <input
           type="number"
           placeholder="Enter Amount"
